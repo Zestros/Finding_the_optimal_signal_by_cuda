@@ -67,7 +67,7 @@ std::string invertBinaryString(const std::string& binaryStr)
 
 int main()
 {
-    size_t n = 29;
+    size_t n = 26;
     size_t N = 1048576 / 8;
     size_t NM = (1 << n) / N;
     int maxD = 10000000;
@@ -78,6 +78,14 @@ int main()
     int* maxs = new int[N];
     cudaMalloc((void**)&dev_signal, N * sizeof(size_t));
     cudaMalloc((void**)&dev_max, N * sizeof(int));
+
+    // Добавляем инструменты для замеров времени
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
+    // Записываем старт
+    cudaEventRecord(start, 0);
 
     for (size_t k = 0; k < NM; k++)
     {
@@ -117,5 +125,17 @@ int main()
 
 
     std::cout << "Best: " << invertBinaryString(intToBinaryString(bestSignal, n)) << std::endl;
+
+    // Фиксируем конец вычисления
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+
+    float elapsed_time_ms;
+    cudaEventElapsedTime(&elapsed_time_ms, start, stop);
+    printf("GPU execution time: %.3f s\n", elapsed_time_ms/1000);
+
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
     return 0;
 }
+
