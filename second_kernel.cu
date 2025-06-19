@@ -100,6 +100,14 @@ int main()
     cudaMalloc((void**)&dev_max, N * sizeof(int));
     cudaMalloc((void**)&dev_bestSignals, N * sizeof(size_t));
 
+    // Добавляем инструменты для замеров времени
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
+    // Записываем старт
+    cudaEventRecord(start, 0);
+
 
         dim3 threadsPerBlock = dim3(512);
         dim3 blocksPerGrid = dim3(N / threadsPerBlock.x);
@@ -128,8 +136,19 @@ int main()
     delete[] maxs;
     
     //invertBinaryString
-    std::cout << "Best: " << (intToBinaryString(bestSignal,n)) << std::endl;
-    
+    std::cout << "Best: " << invertBinaryString(intToBinaryString(bestSignal,n)) << std::endl;
+
+    // Фиксируем конец вычисления
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+
+    float elapsed_time_ms;
+    cudaEventElapsedTime(&elapsed_time_ms, start, stop);
+    printf("GPU execution time: %.3f s\n", elapsed_time_ms/1000);
+
+    // Очистка событий
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
 
     int* akf = new int[n];
         for (int i = 0; i < n; i++) {
@@ -154,6 +173,8 @@ int main()
         }
         std::cout << "MAX: " << max2_val << std::endl;
         delete[] akf;
+
+
 
     return 0;
 }
