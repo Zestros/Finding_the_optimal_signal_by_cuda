@@ -114,9 +114,7 @@ int main()
             if (maxs[i] < maxD)
             {
                 maxD = maxs[i];
-                std::cout << maxD << " ";
                 bestSignal = bestSignals[i];
-                std::cout << bestSignal << std::endl;
             }
         }
 
