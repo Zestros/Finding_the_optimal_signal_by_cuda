@@ -13,7 +13,7 @@
 
 using namespace std;
 
-__global__ void optimized_akf_kernel_with_generation(int offset, int* dev_max, size_t n)
+__global__ void akf_kernel(int offset, int* dev_max, size_t n)
 {
     const size_t idx = blockIdx.x;          
     const size_t tid = threadIdx.x;         
@@ -79,7 +79,7 @@ int main()
         dim3 threadsPerBlock(n);            
         dim3 blocksPerGrid(N);             
 
-        optimized_akf_kernel_with_generation << <blocksPerGrid, threadsPerBlock, n * sizeof(int) >> > (k * N, dev_max, n);
+        akf_kernel << <blocksPerGrid, threadsPerBlock, n * sizeof(int) >> > (k * N, dev_max, n);
 
         
         int* maxs = new int[N];          
