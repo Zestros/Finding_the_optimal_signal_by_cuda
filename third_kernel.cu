@@ -15,26 +15,26 @@ using namespace std;
 
 __global__ void optimized_akf_kernel_with_generation(int offset, int* dev_max, size_t n)
 {
-    const size_t idx = blockIdx.x;           // Индекс блока (номер сигнала)
-    const size_t tid = threadIdx.x;          // Номер потока внутри блока
+    const size_t idx = blockIdx.x;          
+    const size_t tid = threadIdx.x;         
 
-    extern __shared__ int shared_mem[];      // Разделяемая память для промежуточных результатов
+    extern __shared__ int shared_mem[];      
 
-    // Генерируем сигнал непосредственно на GPU
+    // Генерируем сигнал на GPU
     size_t unique_signal_idx = idx + offset;
-    size_t signal = unique_signal_idx;       // Уникальный сигнал
+    size_t signal = unique_signal_idx;      
 
     // Расчёт корреляционного значения для каждой позиции АКФ
     int akf_value = 0;
     for (size_t j = 0; j < n; j++) {
-        if (tid + j < n) {                   // Проверка границы
+        if (tid + j < n) {                  
             bool bit_i = (signal >> (tid + j)) & 1;
             bool bit_j = (signal >> j) & 1;
-            akf_value += (bit_i ^ bit_j) ? -1 : 1; // XOR для проверки равенства битов
+            akf_value += (bit_i ^ bit_j) ? -1 : 1; 
         }
     }
 
-    // Сохраняем результат в разделяемую память
+    
     shared_mem[tid] = akf_value;
     __syncthreads();
 
@@ -59,13 +59,13 @@ __global__ void optimized_akf_kernel_with_generation(int offset, int* dev_max, s
 int main()
 {
     size_t n = 29;
-    size_t N = 1048576;                     // Пакет сигналов
-    size_t NM = (1 << n) / N;                // Число пакетов
+    size_t N = 1048576;                    
+    size_t NM = (1 << n) / N;              
     int maxD = 10000000;
     size_t bestSignal = 0;
 
     int* dev_max;
-    cudaMalloc((void**)&dev_max, N * sizeof(int)); // Память для результирующих данных
+    cudaMalloc((void**)&dev_max, N * sizeof(int)); 
 
     // Профилировка времени
     cudaEvent_t start, stop;
@@ -75,14 +75,14 @@ int main()
 
     for (size_t k = 0; k < NM; k++)
     {
-        // Запуск ядра с прямым созданием сигналов на GPU
-        dim3 threadsPerBlock(n);              // Потоки = длина сигнала
-        dim3 blocksPerGrid(N);                // Блока на каждый сигнал пакета
+        
+        dim3 threadsPerBlock(n);            
+        dim3 blocksPerGrid(N);             
 
         optimized_akf_kernel_with_generation << <blocksPerGrid, threadsPerBlock, n * sizeof(int) >> > (k * N, dev_max, n);
 
-        // Получаем результаты обратно на хост
-        int* maxs = new int[N];               // Временный буфер
+        
+        int* maxs = new int[N];          
         cudaMemcpy(maxs, dev_max, N * sizeof(int), cudaMemcpyDeviceToHost);
 
         for (size_t i = 0; i < N; i++)
