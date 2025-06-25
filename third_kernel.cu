@@ -17,14 +17,11 @@ __global__ void akf_kernel(int offset, int* dev_max, size_t n)
 {
     const size_t idx = blockIdx.x;          
     const size_t tid = threadIdx.x;         
-
     extern __shared__ int shared_mem[];      
 
-    // Генерируем сигнал на GPU
     size_t unique_signal_idx = idx + offset;
     size_t signal = unique_signal_idx;      
 
-    // Расчёт корреляционного значения для каждой позиции АКФ
     int akf_value = 0;
     for (size_t j = 0; j < n; j++) {
         if (tid + j < n) {                  
@@ -33,12 +30,9 @@ __global__ void akf_kernel(int offset, int* dev_max, size_t n)
             akf_value += (bit_i ^ bit_j) ? -1 : 1; 
         }
     }
-
-    
     shared_mem[tid] = akf_value;
     __syncthreads();
 
-    // Поиск максимума второго порядка среди всех позиций АКФ
     int max1_val = INT_MIN;
     int max2_val = INT_MIN;
 
@@ -51,8 +45,6 @@ __global__ void akf_kernel(int offset, int* dev_max, size_t n)
             max2_val = abs(shared_mem[i]);
         }
     }
-
-    // Результат записывается обратно в глобальную память
     dev_max[idx] = max2_val;
 }
 
