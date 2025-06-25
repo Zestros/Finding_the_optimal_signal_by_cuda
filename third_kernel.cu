@@ -68,13 +68,10 @@ int main()
 
     for (size_t k = 0; k < NM; k++)
     {
-        
         dim3 threadsPerBlock(n);            
         dim3 blocksPerGrid(N);             
 
         akf_kernel << <blocksPerGrid, threadsPerBlock, n * sizeof(int) >> > (k * N, dev_max, n);
-
-        
         int* maxs = new int[N];          
         cudaMemcpy(maxs, dev_max, N * sizeof(int), cudaMemcpyDeviceToHost);
 
