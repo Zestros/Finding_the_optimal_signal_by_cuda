@@ -59,8 +59,9 @@ __global__ void akf_kernel(int offset, int* dev_max, size_t n)
 int main()
 {
     size_t n = 29;
-    size_t N = 1048576;                    
-    size_t NM = (1 << n) / N;              
+    size_t N = 1048576;
+    size_t one = 1;
+    size_t NM = (one << n) / N;              
     int maxD = 10000000;
     size_t bestSignal = 0;
 
