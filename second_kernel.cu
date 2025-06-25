@@ -20,12 +20,8 @@ __global__ void akf_kernel(int* dev_max, size_t* dev_bestSignals, size_t n, size
     int pr_dev_max = 100000000;
     size_t mxidx = 1;
     mxidx <<= n;
-    int max1_val;
-    int max2_val;
-    size_t k;
-    size_t ind;
-    size_t i;
-    size_t j;
+    int max1_val, max2_val;
+    size_t k, ind,i, j;
     for (k = idx, ind = 0; ind < mxidx / N; k += N, ind++)
     {
         for (i = 0; i < n; i++) {
@@ -38,7 +34,6 @@ __global__ void akf_kernel(int* dev_max, size_t* dev_bestSignals, size_t n, size
         }
         max1_val = -10000000;
         max2_val = -10000000;
-
         for (i = 0; i < n; ++i) {
             if (abs(akf[i]) > max1_val) {
                 max2_val = max1_val;
